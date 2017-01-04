@@ -20,14 +20,10 @@
 package org.sonar.server.component.suggestion.index;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.sonar.api.utils.Paging;
 import org.sonar.db.component.ComponentQuery;
@@ -35,9 +31,9 @@ import org.sonar.server.es.BaseIndex;
 import org.sonar.server.es.EsClient;
 import org.sonar.server.es.SearchIdResult;
 
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_NAME;
+import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_UUID;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.INDEX_COMPONENT_SUGGESTION;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.TYPE_COMPONENT_SUGGESTION;
 
@@ -60,19 +56,11 @@ public class ComponentSuggestionIndex extends BaseIndex {
       .setFetchSource(false)
       .setFrom(paging.offset())
       .setSize(paging.total())
+      .addField(FIELD_UUID)
       .addSort(FIELD_NAME + "." + SORT_SUFFIX, SortOrder.ASC);
 
-    BoolQueryBuilder esFilter = boolQuery();
-    Map<String, QueryBuilder> filters = createFilters(query);
-    filters.values().forEach(esFilter::must);
-    requestBuilder.setQuery(esFilter);
+    requestBuilder.setQuery(termQuery(FIELD_NAME, query.getNameOrKeyQuery()));
 
     return new SearchIdResult<>(requestBuilder.get(), id -> id).getIds().stream();
-  }
-
-  private Map<String, QueryBuilder> createFilters(ComponentQuery query) {
-    Map<String, QueryBuilder> filters = new HashMap<>();
-    filters.put(FIELD_NAME, termQuery(FIELD_NAME, query.getNameOrKeyQuery()));
-    return filters;
   }
 }

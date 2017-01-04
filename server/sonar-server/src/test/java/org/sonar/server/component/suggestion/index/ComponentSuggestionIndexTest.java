@@ -20,11 +20,13 @@
 package org.sonar.server.component.suggestion.index;
 
 import java.util.List;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.sonar.api.config.MapSettings;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.Paging;
+import org.sonar.api.utils.System2;
 import org.sonar.db.component.ComponentQuery;
 import org.sonar.server.es.EsTester;
 
@@ -35,7 +37,14 @@ public class ComponentSuggestionIndexTest {
   @Rule
   public EsTester es = new EsTester(new ComponentSuggestionIndexDefinition(new MapSettings()));
 
-  private ComponentSuggestionIndex underTest = new ComponentSuggestionIndex(es.client());
+  private ComponentSuggestionIndex underTest;
+  private ComponentSuggestionIndexer indexer;
+
+  @Before
+  public void setUp() {
+    underTest = new ComponentSuggestionIndex(es.client());
+    indexer = new ComponentSuggestionIndexer(System2.INSTANCE, es.client());
+  }
 
   @Test
   public void empty_search() {
@@ -44,5 +53,20 @@ public class ComponentSuggestionIndexTest {
     List<String> result = underTest.search(query, Paging.forPageIndex(1).withPageSize(6).andTotal(0));
 
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void exact_match_search() {
+    ComponentSuggestionDoc doc = new ComponentSuggestionDoc();
+    doc.setId("UUID-DOC-1");
+    doc.setQualifier(Qualifiers.PROJECT);
+    doc.setName("bla");
+    indexer.index(doc);
+
+    ComponentQuery query = ComponentQuery.builder().setNameOrKeyQuery("bla").setQualifiers(Qualifiers.PROJECT).build();
+
+    List<String> result = underTest.search(query, Paging.forPageIndex(1).withPageSize(6).andTotal(6));
+
+    assertThat(result).isNotEmpty();
   }
 }
