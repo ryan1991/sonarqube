@@ -19,6 +19,9 @@
  */
 package org.sonar.server.component.suggestion.index;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,25 +51,46 @@ public class ComponentSuggestionIndexTest {
 
   @Test
   public void empty_search() {
-    ComponentQuery query = ComponentQuery.builder().setNameOrKeyQuery("").setQualifiers(Qualifiers.PROJECT).build();
-
-    List<String> result = underTest.search(query, Paging.forPageIndex(1).withPageSize(6).andTotal(0));
-
-    assertThat(result).isEmpty();
+    assertSearch(
+      Arrays.asList(),
+      "bla",
+      Collections.emptyList());
   }
 
   @Test
   public void exact_match_search() {
-    ComponentSuggestionDoc doc = new ComponentSuggestionDoc();
-    doc.setId("UUID-DOC-1");
-    doc.setQualifier(Qualifiers.PROJECT);
-    doc.setName("bla");
-    indexer.index(doc);
+    assertSearch(
+      Arrays.asList(
+        newDoc("UUID-DOC-1", "bla")),
+      "bla",
+      Arrays.asList(
+        "UUID-DOC-1"));
+  }
 
-    ComponentQuery query = ComponentQuery.builder().setNameOrKeyQuery("bla").setQualifiers(Qualifiers.PROJECT).build();
+  @Test
+  public void unmatching_search() {
+    assertSearch(
+      Arrays.asList(
+        newDoc("UUID-DOC-1", "bla")),
+      "blubb",
+      Collections.emptyList());
+  }
+
+  private ComponentSuggestionDoc newDoc(String uuid, String name) {
+    ComponentSuggestionDoc doc = new ComponentSuggestionDoc();
+    doc.setId(uuid);
+    doc.setQualifier(Qualifiers.PROJECT);
+    doc.setName(name);
+    return doc;
+  }
+
+  private void assertSearch(Collection<ComponentSuggestionDoc> input, String queryText, Collection<String> expectedOutput) {
+    input.stream().forEach(indexer::index);
+
+    ComponentQuery query = ComponentQuery.builder().setNameOrKeyQuery(queryText).setQualifiers(Qualifiers.PROJECT).build();
 
     List<String> result = underTest.search(query, Paging.forPageIndex(1).withPageSize(6).andTotal(6));
 
-    assertThat(result).isNotEmpty();
+    assertThat(result).isEqualTo(expectedOutput);
   }
 }
