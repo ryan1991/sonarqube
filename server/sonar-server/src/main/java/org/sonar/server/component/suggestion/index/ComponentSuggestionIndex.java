@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.sonar.api.utils.Paging;
 import org.sonar.db.component.ComponentQuery;
@@ -31,8 +32,10 @@ import org.sonar.server.es.BaseIndex;
 import org.sonar.server.es.EsClient;
 import org.sonar.server.es.SearchIdResult;
 
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_NAME;
+import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_QUALIFIER;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_UUID;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.INDEX_COMPONENT_SUGGESTION;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.TYPE_COMPONENT_SUGGESTION;
@@ -59,8 +62,15 @@ public class ComponentSuggestionIndex extends BaseIndex {
       .addField(FIELD_UUID)
       .addSort(FIELD_NAME + "." + SORT_SUFFIX, SortOrder.ASC);
 
-    requestBuilder.setQuery(termQuery(FIELD_NAME, query.getNameOrKeyQuery()));
+    requestBuilder.setQuery(
+      createQuery(qualifier, query.getNameOrKeyQuery()));
 
     return new SearchIdResult<>(requestBuilder.get(), id -> id).getIds().stream();
+  }
+
+  private BoolQueryBuilder createQuery(String qualifier, String query) {
+    return boolQuery()
+      .filter(termQuery(FIELD_NAME, query))
+      .filter(termQuery(FIELD_QUALIFIER, qualifier));
   }
 }
