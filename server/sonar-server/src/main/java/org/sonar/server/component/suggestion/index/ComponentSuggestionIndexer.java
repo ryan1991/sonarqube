@@ -20,29 +20,49 @@
 
 package org.sonar.server.component.suggestion.index;
 
+import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.Uninterruptibles;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.elasticsearch.action.index.IndexRequest;
-import org.sonar.api.utils.System2;
-//import org.sonar.db.component.ComponentSuggestionIndexerIterator.ComponentSuggestion;
-import org.sonar.server.es.BaseIndexer;
+import org.sonar.api.Startable;
+import org.sonar.db.DbClient;
 import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.EsClient;
 
-import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_CREATED_AT;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.INDEX_COMPONENT_SUGGESTION;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.TYPE_COMPONENT_SUGGESTION;
 
-public class ComponentSuggestionIndexer extends BaseIndexer {
+public class ComponentSuggestionIndexer implements Startable {
 
-  public ComponentSuggestionIndexer(System2 system2, EsClient esClient) {
-    super(system2, esClient, 300, INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION, FIELD_CREATED_AT);
-  }
+  private final ThreadPoolExecutor executor;// TODO avoid duplications from PermissionIndexer
+  private final DbClient dbClient;
+  private final EsClient esClient;
 
-  @Override
-  protected long doIndex(long lastUpdatedAt) {
-    return 0;// FIXME implement
+  public ComponentSuggestionIndexer(DbClient dbClient, EsClient esClient) {
+    this.executor = new ThreadPoolExecutor(0, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    this.dbClient = dbClient;
+    this.esClient = esClient;
   }
 
   public void index(ComponentSuggestionDoc doc) {
+    Future<?> submit = executor.submit(() -> {
+      // try (DbSession dbSession = dbClient.openSession(false)) {
+      // index(new ComponentSuggestionIndexer().selectAll(dbClient, dbSession));
+      // }
+      indexNow(doc);
+    });
+    try {
+      Uninterruptibles.getUninterruptibly(submit);
+    } catch (ExecutionException e) {
+      Throwables.propagate(e);
+    }
+  }
+
+  private void indexNow(ComponentSuggestionDoc doc) {
     BulkIndexer bulk = new BulkIndexer(esClient, INDEX_COMPONENT_SUGGESTION);
     bulk.setLarge(false);
     bulk.start();
@@ -53,5 +73,15 @@ public class ComponentSuggestionIndexer extends BaseIndexer {
   private static IndexRequest newIndexRequest(ComponentSuggestionDoc doc) {
     return new IndexRequest(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION, doc.getId())
       .source(doc.getFields());
+  }
+
+  @Override
+  public void start() {
+    // no action required, setup is done in constructor
+  }
+
+  @Override
+  public void stop() {
+    executor.shutdown();
   }
 }

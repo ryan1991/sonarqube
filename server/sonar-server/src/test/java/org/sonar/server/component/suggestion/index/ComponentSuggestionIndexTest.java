@@ -32,9 +32,12 @@ import org.sonar.api.config.MapSettings;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.Paging;
 import org.sonar.api.utils.System2;
+import org.sonar.db.DbClient;
+import org.sonar.db.DbTester;
 import org.sonar.db.component.ComponentQuery;
 import org.sonar.server.es.EsTester;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentSuggestionIndexTest {
@@ -42,6 +45,12 @@ public class ComponentSuggestionIndexTest {
   private static final int PAGE_SIZE = 6;
   private static final String[] QUALIFIERS = {Qualifiers.VIEW, Qualifiers.SUBVIEW, Qualifiers.PROJECT, Qualifiers.FILE, Qualifiers.UNIT_TEST_FILE,
     Qualifiers.DIRECTORY, Qualifiers.MODULE};
+
+  private static final String BLA = "bla";
+  private static final String UUID_DOC = "UUID-DOC-";
+  private static final String UUID_DOC_1 = UUID_DOC + "1";
+  private static final String KEY = "KEY-";
+  private static final String KEY_1 = KEY + "1";
 
   @Rule
   public EsTester es = new EsTester(new ComponentSuggestionIndexDefinition(new MapSettings()));
@@ -52,61 +61,78 @@ public class ComponentSuggestionIndexTest {
   @Before
   public void setUp() {
     index = new ComponentSuggestionIndex(es.client());
-    indexer = new ComponentSuggestionIndexer(System2.INSTANCE, es.client());
+    DbClient dbClient = DbTester.create(System2.INSTANCE).getDbClient();
+    indexer = new ComponentSuggestionIndexer(dbClient, es.client());
   }
 
   @Test
   public void empty_search() {
     assertSearch(
-      Arrays.asList(),
-      "bla",
+      asList(),
+      BLA,
       Collections.emptyList());
   }
 
   @Test
   public void exact_match_search() {
     assertSearch(
-      Arrays.asList(
-        newDoc("UUID-DOC-1", "bla")),
-      "bla",
-      Arrays.asList(
-        "UUID-DOC-1"));
+      asList(newDoc(BLA)),
+      BLA,
+      asList(UUID_DOC_1));
+  }
+
+  @Test
+  public void key_match_search() {
+    assertSearch(
+      asList(newDoc(UUID_DOC_1, "name is not a match", "matchingKey", Qualifiers.PROJECT)),
+      "matchingKey",
+      asList(UUID_DOC_1));
   }
 
   @Test
   public void unmatching_search() {
     assertSearch(
-      Arrays.asList(
-        newDoc("UUID-DOC-1", "bla")),
+      asList(newDoc(BLA)),
       "blubb",
       Collections.emptyList());
   }
 
   @Test
   public void limit_number_of_documents() {
-    Collection<ComponentSuggestionDoc> docs = IntStream.rangeClosed(1, PAGE_SIZE + 1).mapToObj(i -> newDoc("UUID-DOC-" + i, "bla")).collect(Collectors.toList());
-    assertThat(search(docs, "bla")).hasSize(PAGE_SIZE);
+    Collection<ComponentSuggestionDoc> docs = IntStream
+      .rangeClosed(1, PAGE_SIZE + 1)
+      .mapToObj(i -> newDoc(UUID_DOC + i, BLA, KEY + i, Qualifiers.PROJECT))
+      .collect(Collectors.toList());
+    assertThat(search(docs, BLA)).hasSize(PAGE_SIZE);
   }
 
   @Test
   public void limit_number_of_documents_per_qualifier() {
-    Collection<ComponentSuggestionDoc> docs = Arrays.stream(QUALIFIERS)
-      .map(q -> newDoc("UUID-DOC-" + q, "bla", q)).collect(Collectors.toList());
-    Collection<String> results = search(
-      docs,
-      "bla");
-    assertThat(results).hasSameElementsAs(docs.stream().map(d -> d.getId()).collect(Collectors.toList()));
+
+    // create one document for each qualifier
+    Collection<ComponentSuggestionDoc> docs = Arrays
+      .stream(QUALIFIERS)
+      .map(q -> newDoc(UUID_DOC + q, BLA, KEY + q, q))
+      .collect(Collectors.toList());
+
+    List<String> ids = docs.stream().map(d -> d.getId()).collect(Collectors.toList());
+    assertThat(search(docs, BLA)).hasSameElementsAs(ids);
+  }
+
+  private ComponentSuggestionDoc newDoc(String name) {
+    return newDoc(UUID_DOC_1, name);
   }
 
   private ComponentSuggestionDoc newDoc(String uuid, String name) {
-    return newDoc(uuid, name, Qualifiers.PROJECT);
+    return newDoc(uuid, name, KEY_1, Qualifiers.PROJECT);
   }
 
-  private ComponentSuggestionDoc newDoc(String uuid, String name, String qualifier) {
+  private ComponentSuggestionDoc newDoc(String uuid, String name, String key, String qualifier) {
     ComponentSuggestionDoc doc = new ComponentSuggestionDoc();
     doc.setId(uuid);
-    doc.setQualifier(qualifier);
     doc.setName(name);
+    doc.setKey(key);
+    doc.setQualifier(qualifier);
     return doc;
   }
 
