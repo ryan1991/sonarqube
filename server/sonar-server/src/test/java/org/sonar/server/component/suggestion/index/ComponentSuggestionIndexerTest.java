@@ -49,6 +49,79 @@ public class ComponentSuggestionIndexerTest {
     assertThat(indexAndReturnCount()).isEqualTo(1);
   }
 
+  @Test
+  public void index_one_project_have_document_of_another() {
+    ComponentDto component = new ComponentDto()
+      .setKey("KEY-1")
+      .setUuid("UUID-1")
+      .setRootUuid("ROOT-1")
+      .setUuidPath("PATH-1")
+      .setQualifier(Qualifiers.PROJECT)
+      .setName("Name")
+      .setDescription("Description");
+    dbClient.componentDao().insert(dbSession, component);
+    dbSession.commit();
+
+    ComponentSuggestionIndexer indexer = createIndexer();
+    indexer.index("UUID-2");
+    long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
+
+    assertThat(countDocuments).isEqualTo(0);
+  }
+
+  @Test
+  public void index_one_project_consisting_of_single_component() {
+    ComponentDto component = new ComponentDto()
+      .setKey("KEY-1")
+      .setUuid("UUID-1")
+      .setRootUuid("ROOT-1")
+      .setUuidPath("PATH-1")
+      .setQualifier(Qualifiers.PROJECT)
+      .setName("Name")
+      .setDescription("Description");
+    dbClient.componentDao().insert(dbSession, component);
+    dbSession.commit();
+
+    ComponentSuggestionIndexer indexer = createIndexer();
+    indexer.index("UUID-1");
+    long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
+
+    assertThat(countDocuments).isEqualTo(0);
+  }
+
+  @Test
+  public void index_one_project_containing_a_file() {
+    ComponentDto projectComponent = new ComponentDto()
+      .setKey("KEY-PROJECT-1")
+      .setUuid("UUID-PROJECT-1")
+      .setProjectUuid("UUID-PROJECT-1")
+      .setRootUuid("UUID-PROJECT-1")
+      .setUuidPath("PATH-PROJECT-1")
+      .setQualifier(Qualifiers.PROJECT)
+      .setName("Project")
+      .setDescription("Project description");
+    dbClient.componentDao().insert(dbSession, projectComponent);
+
+    ComponentDto fileComponent = new ComponentDto()
+      .setKey("KEY-FILE-1")
+      .setUuid("UUID-FILE-1")
+      .setProjectUuid("UUID-PROJECT-1")// reference to project
+      .setRootUuid("UUID-PROJECT-1")
+      .setUuidPath("PATH-FILE-1")
+      .setQualifier(Qualifiers.FILE)
+      .setName("File")
+      .setDescription("File description");
+    dbClient.componentDao().insert(dbSession, fileComponent);
+
+    dbSession.commit();
+
+    ComponentSuggestionIndexer indexer = createIndexer();
+    indexer.index("UUID-PROJECT-1");
+    long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
+
+    assertThat(countDocuments).isEqualTo(2);
+  }
+
   private long indexAndReturnCount() {
     ComponentSuggestionIndexer indexer = createIndexer();
     indexer.index();
