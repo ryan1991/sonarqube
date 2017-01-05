@@ -48,6 +48,24 @@ public class ComponentSuggestionDoc extends BaseDoc {
     return this;
   }
 
+  public String getProjectUuid() {
+    return getField(ComponentSuggestionIndexDefinition.FIELD_PROJECT_UUID);
+  }
+
+  public ComponentSuggestionDoc setProjectUuid(String s) {
+    setField(ComponentSuggestionIndexDefinition.FIELD_PROJECT_UUID, s);
+    return this;
+  }
+
+  public String getKey() {
+    return getField(ComponentSuggestionIndexDefinition.FIELD_KEY);
+  }
+
+  public ComponentSuggestionDoc setKey(String s) {
+    setField(ComponentSuggestionIndexDefinition.FIELD_KEY, s);
+    return this;
+  }
+
   public String getName() {
     return getField(ComponentSuggestionIndexDefinition.FIELD_NAME);
   }

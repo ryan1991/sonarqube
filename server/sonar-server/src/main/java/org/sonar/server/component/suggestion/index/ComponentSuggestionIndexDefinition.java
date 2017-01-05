@@ -28,13 +28,13 @@ public class ComponentSuggestionIndexDefinition implements IndexDefinition {
   public static final String INDEX_COMPONENT_SUGGESTION = "componentsuggestions";
   public static final String TYPE_COMPONENT_SUGGESTION = "componentsuggestion";
 
-  // META-Information about the document
-  public static final String FIELD_CREATED_AT = "createdAt";
-
-  // Payload-Information stored in the document
   public static final String FIELD_UUID = "uuid";
+  public static final String FIELD_PROJECT_UUID = "uuid";
+  public static final String FIELD_KEY = "key";
   public static final String FIELD_NAME = "name";
   public static final String FIELD_QUALIFIER = "qualifier";
+
+  private static final int DEFAULT_NUMBER_OF_SHARDS = 5;
 
   private final Settings settings;
 
@@ -46,11 +46,13 @@ public class ComponentSuggestionIndexDefinition implements IndexDefinition {
   public void define(IndexDefinitionContext context) {
     NewIndex index = context.create(INDEX_COMPONENT_SUGGESTION);
     index.refreshHandledByIndexer();
-    index.configureShards(settings, 5);
+    index.configureShards(settings, DEFAULT_NUMBER_OF_SHARDS);
 
     // type "componentsuggestion"
     NewIndex.NewIndexType mapping = index.createType(TYPE_COMPONENT_SUGGESTION);
     mapping.stringFieldBuilder(FIELD_UUID).disableNorms().build();
+    mapping.stringFieldBuilder(FIELD_PROJECT_UUID).build();
+    mapping.stringFieldBuilder(FIELD_KEY).build();
     mapping.stringFieldBuilder(FIELD_NAME).enableSorting().enableGramSearch().build();
     mapping.stringFieldBuilder(FIELD_QUALIFIER).build();
 

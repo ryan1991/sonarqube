@@ -34,6 +34,7 @@ import org.sonar.server.es.SearchIdResult;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_KEY;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_NAME;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_QUALIFIER;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_UUID;
@@ -70,7 +71,10 @@ public class ComponentSuggestionIndex extends BaseIndex {
 
   private BoolQueryBuilder createQuery(String qualifier, String query) {
     return boolQuery()
-      .filter(termQuery(FIELD_NAME, query))
-      .filter(termQuery(FIELD_QUALIFIER, qualifier));
+      .filter(termQuery(FIELD_QUALIFIER, qualifier))
+      .filter(boolQuery()
+        .should(termQuery(FIELD_NAME, query))
+        .should(termQuery(FIELD_KEY, query))
+        .minimumNumberShouldMatch(1));
   }
 }
