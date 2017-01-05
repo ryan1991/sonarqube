@@ -27,9 +27,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.elasticsearch.action.index.IndexRequest;
 import org.sonar.api.Startable;
 import org.sonar.db.DbClient;
+import org.sonar.db.DbSession;
+import org.sonar.db.component.ComponentDto;
 import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.EsClient;
 
@@ -48,13 +51,35 @@ public class ComponentSuggestionIndexer implements Startable {
     this.esClient = esClient;
   }
 
-  public void index(ComponentSuggestionDoc doc) {
-    Future<?> submit = executor.submit(() -> {
-      // try (DbSession dbSession = dbClient.openSession(false)) {
-      // index(new ComponentSuggestionIndexer().selectAll(dbClient, dbSession));
-      // }
-      indexNow(doc);
-    });
+  /**
+   * Copy all database contents to the elastic search index.
+   */
+  public void index() {
+    try (DbSession dbSession = dbClient.openSession(false)) {
+      dbClient.componentDao()
+        .selectAll(dbSession, context -> index((ComponentDto) context.getResultObject()));
+    }
+  }
+
+  /**
+   * Update the elastic search for one specific project. The current data from the database is used.
+   */
+  public void index(String projectUuid) {
+    try (DbSession dbSession = dbClient.openSession(false)) {
+      index(dbClient.componentDao().selectByProjectUuid(projectUuid, dbSession).stream());
+    }
+  }
+
+  private void index(Stream<ComponentDto> components) {
+    components.forEach(this::index);
+  }
+
+  public void index(ComponentDto doc) {
+    index(toDocument(doc));
+  }
+
+  public void index(ComponentSuggestionDoc document) {
+    Future<?> submit = executor.submit(() -> indexNow(document));
     try {
       Uninterruptibles.getUninterruptibly(submit);
     } catch (ExecutionException e) {
@@ -63,7 +88,7 @@ public class ComponentSuggestionIndexer implements Startable {
   }
 
   private void indexNow(ComponentSuggestionDoc doc) {
-    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_COMPONENT_SUGGESTION);
+    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_COMPONENT_SUGGESTION);// TODO reuse bulk indexer
     bulk.setLarge(false);
     bulk.start();
     bulk.add(newIndexRequest(doc));
@@ -73,6 +98,14 @@ public class ComponentSuggestionIndexer implements Startable {
   private static IndexRequest newIndexRequest(ComponentSuggestionDoc doc) {
     return new IndexRequest(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION, doc.getId())
       .source(doc.getFields());
+  }
+
+  private static ComponentSuggestionDoc toDocument(ComponentDto component) {
+    return new ComponentSuggestionDoc()
+      .setId(component.uuid())
+      .setName(component.name())
+      .setKey(component.key())
+      .setQualifier(component.qualifier());
   }
 
   @Override
