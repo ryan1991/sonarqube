@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,15 +39,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentSuggestionIndexTest {
 
+  private static final int PAGE_SIZE = 6;
+  private static final String[] QUALIFIERS = {Qualifiers.VIEW, Qualifiers.SUBVIEW, Qualifiers.PROJECT, Qualifiers.FILE, Qualifiers.UNIT_TEST_FILE,
+    Qualifiers.DIRECTORY, Qualifiers.MODULE};
+
   @Rule
   public EsTester es = new EsTester(new ComponentSuggestionIndexDefinition(new MapSettings()));
 
-  private ComponentSuggestionIndex underTest;
+  private ComponentSuggestionIndex index;
   private ComponentSuggestionIndexer indexer;
 
   @Before
   public void setUp() {
-    underTest = new ComponentSuggestionIndex(es.client());
+    index = new ComponentSuggestionIndex(es.client());
     indexer = new ComponentSuggestionIndexer(System2.INSTANCE, es.client());
   }
 
@@ -76,21 +82,42 @@ public class ComponentSuggestionIndexTest {
       Collections.emptyList());
   }
 
+  @Test
+  public void limit_number_of_documents() {
+    Collection<ComponentSuggestionDoc> docs = IntStream.rangeClosed(1, PAGE_SIZE + 1).mapToObj(i -> newDoc("UUID-DOC-" + i, "bla")).collect(Collectors.toList());
+    assertThat(search(docs, "bla")).hasSize(PAGE_SIZE);
+  }
+
+  @Test
+  public void limit_number_of_documents_per_qualifier() {
+    Collection<ComponentSuggestionDoc> docs = Arrays.stream(QUALIFIERS)
+      .map(q -> newDoc("UUID-DOC-" + q, "bla", q)).collect(Collectors.toList());
+    Collection<String> results = search(
+      docs,
+      "bla");
+    assertThat(results).hasSameElementsAs(docs.stream().map(d -> d.getId()).collect(Collectors.toList()));
+  }
+
   private ComponentSuggestionDoc newDoc(String uuid, String name) {
+    return newDoc(uuid, name, Qualifiers.PROJECT);
+  }
+
+  private ComponentSuggestionDoc newDoc(String uuid, String name, String qualifier) {
     ComponentSuggestionDoc doc = new ComponentSuggestionDoc();
     doc.setId(uuid);
-    doc.setQualifier(Qualifiers.PROJECT);
+    doc.setQualifier(qualifier);
     doc.setName(name);
     return doc;
   }
 
   private void assertSearch(Collection<ComponentSuggestionDoc> input, String queryText, Collection<String> expectedOutput) {
+    List<String> result = search(input, queryText);
+    assertThat(result).hasSameElementsAs(expectedOutput);
+  }
+
+  private List<String> search(Collection<ComponentSuggestionDoc> input, String queryText) {
     input.stream().forEach(indexer::index);
-
-    ComponentQuery query = ComponentQuery.builder().setNameOrKeyQuery(queryText).setQualifiers(Qualifiers.PROJECT).build();
-
-    List<String> result = underTest.search(query, Paging.forPageIndex(1).withPageSize(6).andTotal(6));
-
-    assertThat(result).isEqualTo(expectedOutput);
+    ComponentQuery query = ComponentQuery.builder().setNameOrKeyQuery(queryText).setQualifiers(QUALIFIERS).build();
+    return index.search(query, Paging.forPageIndex(1).withPageSize(PAGE_SIZE).andTotal(PAGE_SIZE));
   }
 }
