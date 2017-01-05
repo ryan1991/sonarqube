@@ -33,20 +33,23 @@ public class VersionTest {
 
   @Test
   public void test_parse() {
-    assertVersion(parse(""), 0, 0, 0, "");
-    assertVersion(parse("1"), 1, 0, 0, "");
-    assertVersion(parse("1.2"), 1, 2, 0, "");
-    assertVersion(parse("1.2.3"), 1, 2, 3, "");
-    assertVersion(parse("1.2-beta-1"), 1, 2, 0, "beta-1");
-    assertVersion(parse("1.2.3-beta1"), 1, 2, 3, "beta1");
-    assertVersion(parse("1.2.3-beta-1"), 1, 2, 3, "beta-1");
+    assertVersion(parse(""), 0, 0, 0, 0, "");
+    assertVersion(parse("1"), 1, 0, 0, 0, "");
+    assertVersion(parse("1.2"), 1, 2, 0, 0,"");
+    assertVersion(parse("1.2.3"), 1, 2, 3, 0,"");
+    assertVersion(parse("1.2-beta-1"), 1, 2, 0, 0,"beta-1");
+    assertVersion(parse("1.2.3-beta1"), 1, 2, 3, 0,"beta1");
+    assertVersion(parse("1.2.3-beta-1"), 1, 2, 3, 0,"beta-1");
+    assertVersion(parse("1.2.3.4567"), 1, 2, 3, 4567,"");
+    assertVersion(parse("1.2.3.4567-alpha"), 1, 2, 3, 4567,"alpha");
   }
 
   @Test
-  public void parse_throws_IAE_if_more_than_3_sequences() {
+  public void parse_throws_IAE_if_more_than_4_fields() {
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("Only 3 sequences are accepted");
-    parse("1.2.3.4");
+    expectedException.expectMessage("Maximum 4 fields are accepted: 1.2.3.456.7");
+
+    parse("1.2.3.456.7");
   }
 
   @Test
@@ -101,19 +104,20 @@ public class VersionTest {
 
   @Test
   public void test_create() {
-    assertVersion(Version.create(1, 2), 1, 2, 0, "");
-    assertVersion(Version.create(1, 2, 3), 1, 2, 3, "");
-    assertVersion(Version.create(1, 2, 0, ""), 1, 2, 0, "");
-    assertVersion(Version.create(1, 2, 3, "build1"), 1, 2, 3, "build1");
+    assertVersion(Version.create(1, 2), 1, 2, 0, 0, "");
+    assertVersion(Version.create(1, 2, 3), 1, 2, 3, 0, "");
+    assertVersion(Version.create(1, 2, 0, ""), 1, 2, 0, 0, "");
+    assertVersion(Version.create(1, 2, 3, "build1"), 1, 2, 3, 0, "build1");
     assertThat(Version.create(1, 2, 3, "build1").toString()).isEqualTo("1.2.3-build1");
 
   }
 
   private static void assertVersion(Version version,
-                                    int expectedMajor, int expectedMinor, int expectedPatch, String expectedQualifier) {
+                                    int expectedMajor, int expectedMinor, int expectedPatch, long expectedBuildNumber, String expectedQualifier) {
     assertThat(version.major()).isEqualTo(expectedMajor);
     assertThat(version.minor()).isEqualTo(expectedMinor);
     assertThat(version.patch()).isEqualTo(expectedPatch);
+    assertThat(version.buildNumber()).isEqualTo(expectedBuildNumber);
     assertThat(version.qualifier()).isEqualTo(expectedQualifier);
   }
 }
