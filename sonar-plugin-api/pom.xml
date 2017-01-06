@@ -13,6 +13,10 @@
 
   <name>SonarQube :: Plugin API</name>
 
+  <properties>
+    <project.version.3digits>${project.version}</project.version.3digits>
+  </properties>
+
   <dependencies>
 
     <!--
@@ -212,6 +216,28 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+         <groupId>org.codehaus.gmaven</groupId>
+         <artifactId>groovy-maven-plugin</artifactId>
+         <version>2.0</version>
+         <executions>
+           <execution>
+             <id>compute-3digits-version</id>
+             <phase>generate-resources</phase>
+             <goals>
+               <goal>execute</goal>
+             </goals>
+             <configuration>
+               <source><![CDATA[
+                 if (! "${project.version}".endsWith("-SNAPSHOT")) {
+                   project.properties['project.version.3digits'] = "${project.version}".substring(0, "${project.version}".lastIndexOf('.'))
+                 }
+                 ]]>
+               </source>
+             </configuration>
+           </execution>
+         </executions>
       </plugin>
     </plugins>
 
