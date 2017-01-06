@@ -26,7 +26,6 @@ import org.sonar.api.i18n.I18n;
 import org.sonar.api.resources.Language;
 import org.sonar.api.resources.Languages;
 import org.sonar.api.resources.ResourceTypes;
-import org.sonar.api.server.ws.RailsHandler;
 import org.sonar.api.server.ws.WebService;
 import org.sonar.db.DbClient;
 import org.sonar.server.component.ComponentFinder;
@@ -72,7 +71,7 @@ public class ComponentsWsTest {
     assertThat(action).isNotNull();
     assertThat(action.isInternal()).isTrue();
     assertThat(action.isPost()).isFalse();
-    assertThat(action.handler()).isInstanceOf(RailsHandler.class);
+    assertThat(action.handler()).isNotNull();
     assertThat(action.responseExampleAsString()).isNotEmpty();
     assertThat(action.params()).hasSize(2);
   }
