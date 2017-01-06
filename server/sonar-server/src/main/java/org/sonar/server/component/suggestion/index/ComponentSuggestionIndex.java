@@ -33,6 +33,7 @@ import org.sonar.server.es.SearchIdResult;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_KEY;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_NAME;
 import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.FIELD_QUALIFIER;
@@ -85,7 +86,7 @@ public class ComponentSuggestionIndex extends BaseIndex {
     return boolQuery()
       .filter(termQuery(FIELD_QUALIFIER, qualifier))
       .filter(boolQuery()
-        .should(termQuery(FIELD_NAME, query))
+        .should(wildcardQuery(FIELD_NAME, "*" + query + "*"))//FIXME do not hand user input directly to elasticsearch!
         .should(termQuery(FIELD_KEY, query))
         .minimumNumberShouldMatch(1));
   }

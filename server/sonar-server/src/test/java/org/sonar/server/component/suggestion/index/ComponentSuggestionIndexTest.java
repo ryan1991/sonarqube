@@ -50,6 +50,11 @@ public class ComponentSuggestionIndexTest {
   private static final String KEY = "KEY-";
   private static final String KEY_1 = KEY + "1";
 
+  private static final String PREFIX = "prefix";
+  private static final String MIDDLE = "middle";
+  private static final String SUFFIX = "suffix";
+  private static final String PREFIX_MIDDLE_SUFFIX = PREFIX + MIDDLE + SUFFIX;
+
   @Rule
   public EsTester es = new EsTester(new ComponentSuggestionIndexDefinition(new MapSettings()));
 
@@ -76,6 +81,28 @@ public class ComponentSuggestionIndexTest {
     assertSearch(
       asList(newDoc(BLA)),
       BLA,
+      asList(UUID_DOC_1));
+  }
+
+  @Test
+  public void prefix_match_search() {
+    assertMatch(PREFIX_MIDDLE_SUFFIX, PREFIX);
+  }
+
+  @Test
+  public void middle_match_search() {
+    assertMatch(PREFIX_MIDDLE_SUFFIX, MIDDLE);
+  }
+
+  @Test
+  public void suffix_match_search() {
+    assertMatch(PREFIX_MIDDLE_SUFFIX, SUFFIX);
+  }
+
+  private void assertMatch(String name, String query) {
+    assertSearch(
+      asList(newDoc(name)),
+      query,
       asList(UUID_DOC_1));
   }
 
