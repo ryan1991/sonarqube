@@ -19,8 +19,6 @@
  */
 package org.sonar.server.component.ws;
 
-import com.google.common.io.Resources;
-import org.sonar.api.server.ws.RailsHandler;
 import org.sonar.api.server.ws.WebService;
 
 import static org.sonarqube.ws.client.component.ComponentsWsParameters.CONTROLLER_COMPONENTS;
@@ -29,11 +27,13 @@ public class ComponentsWs implements WebService {
 
   private final AppAction appAction;
   private final SearchViewComponentsAction searchViewComponentsAction;
+  private final SuggestionsAction suggestionsAction;
   private final ComponentsWsAction[] actions;
 
-  public ComponentsWs(AppAction appAction, SearchViewComponentsAction searchViewComponentsAction, ComponentsWsAction... actions) {
+  public ComponentsWs(AppAction appAction, SearchViewComponentsAction searchViewComponentsAction, SuggestionsAction suggestionsAction, ComponentsWsAction... actions) {
     this.appAction = appAction;
     this.searchViewComponentsAction = searchViewComponentsAction;
+    this.suggestionsAction = suggestionsAction;
     this.actions = actions;
   }
 
@@ -49,25 +49,9 @@ public class ComponentsWs implements WebService {
     }
     appAction.define(controller);
     searchViewComponentsAction.define(controller);
-    defineSuggestionsAction(controller);
+    suggestionsAction.define(controller);
 
     controller.done();
-  }
-
-  private void defineSuggestionsAction(NewController controller) {
-    NewAction action = controller.createAction("suggestions")
-      .setDescription("Internal WS for the top-right search engine")
-      .setSince("4.2")
-      .setInternal(true)
-      .setHandler(RailsHandler.INSTANCE)
-      .setResponseExample(Resources.getResource(this.getClass(), "components-example-suggestions.json"));
-
-    action.createParam("s")
-      .setRequired(true)
-      .setDescription("Substring of project key (minimum 2 characters)")
-      .setExampleValue("sonar");
-
-    RailsHandler.addJsonOnlyFormatParam(action);
   }
 
 }

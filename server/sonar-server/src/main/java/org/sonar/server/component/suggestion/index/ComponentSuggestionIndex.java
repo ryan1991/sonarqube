@@ -26,8 +26,7 @@ import java.util.stream.Stream;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.sonar.api.utils.Paging;
-import org.sonar.db.component.ComponentQuery;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.server.es.BaseIndex;
 import org.sonar.server.es.EsClient;
 import org.sonar.server.es.SearchIdResult;
@@ -43,30 +42,43 @@ import static org.sonar.server.component.suggestion.index.ComponentSuggestionInd
 
 public class ComponentSuggestionIndex extends BaseIndex {
 
+  static final String[] QUALIFIERS = {
+    Qualifiers.VIEW,
+    Qualifiers.SUBVIEW,
+    Qualifiers.PROJECT,
+    Qualifiers.LIBRARY, // TODO clarify if necessary
+    Qualifiers.MODULE,
+    Qualifiers.DIRECTORY, // TODO clarify if necessary
+    Qualifiers.FILE,
+    Qualifiers.UNIT_TEST_FILE
+  };
+
   public ComponentSuggestionIndex(EsClient client) {
     super(client);
   }
 
-  public List<String> search(ComponentQuery query, Paging paging) {
-    return Arrays.stream(query.getQualifiers())
-      .flatMap(qualifier -> search(qualifier, query, paging))
+  public List<String> search(String query) {
+    return Arrays.stream(QUALIFIERS)
+      .flatMap(qualifier -> search(qualifier, query))
       .collect(Collectors.toList());
   }
 
-  private Stream<String> search(String qualifier, ComponentQuery query, Paging paging) {
+  private Stream<String> search(String qualifier, String query) {
+    System.out.println("search " + qualifier);
     SearchRequestBuilder requestBuilder = getClient()
       .prepareSearch(INDEX_COMPONENT_SUGGESTION)
       .setTypes(TYPE_COMPONENT_SUGGESTION)
       .setFetchSource(false)
-      .setFrom(paging.offset())
-      .setSize(paging.total())
+      .setSize(6)
       .addField(FIELD_UUID)
       .addSort(FIELD_NAME + "." + SORT_SUFFIX, SortOrder.ASC);
 
     requestBuilder.setQuery(
-      createQuery(qualifier, query.getNameOrKeyQuery()));
+      createQuery(qualifier, query));
 
-    return new SearchIdResult<>(requestBuilder.get(), id -> id).getIds().stream();
+    List<String> ids = new SearchIdResult<>(requestBuilder.get(), id -> id).getIds();
+    System.out.println("  found " + ids);
+    return ids.stream();
   }
 
   private BoolQueryBuilder createQuery(String qualifier, String query) {

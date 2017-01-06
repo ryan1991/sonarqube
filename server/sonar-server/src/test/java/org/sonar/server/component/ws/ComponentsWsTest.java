@@ -53,8 +53,8 @@ public class ComponentsWsTest {
     WsTester tester = new WsTester(new ComponentsWs(
       new AppAction(mock(DbClient.class), userSessionRule, mock(ComponentFinder.class)),
       new SearchViewComponentsAction(mock(DbClient.class), userSessionRule, mock(ComponentFinder.class)),
-      new SearchAction(mock(org.sonar.db.DbClient.class), mock(ComponentSuggestionIndex.class), mock(ResourceTypes.class), mock(I18n.class), userSessionRule, languages)
-      ));
+      new SuggestionsAction(mock(DbClient.class), mock(ComponentSuggestionIndex.class)),
+      new SearchAction(mock(org.sonar.db.DbClient.class), mock(ResourceTypes.class), mock(I18n.class), userSessionRule, languages)));
     controller = tester.controller("api/components");
   }
 

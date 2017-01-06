@@ -36,7 +36,6 @@ import org.sonar.db.DbTester;
 import org.sonar.db.component.ComponentDbTester;
 import org.sonar.db.component.ComponentDto;
 import org.sonar.db.component.ResourceTypesRule;
-import org.sonar.server.component.suggestion.index.ComponentSuggestionIndex;
 import org.sonar.server.exceptions.ForbiddenException;
 import org.sonar.server.exceptions.UnauthorizedException;
 import org.sonar.server.i18n.I18nRule;
@@ -71,17 +70,15 @@ public class SearchActionTest {
   WsActionTester ws;
   ResourceTypesRule resourceTypes = new ResourceTypesRule();
   Languages languages;
-  ComponentSuggestionIndex index;
 
   @Before
   public void setUp() {
     userSession.login().setGlobalPermissions(GlobalPermissions.SYSTEM_ADMIN);
-    index = mock(ComponentSuggestionIndex.class);
     resourceTypes.setAllQualifiers(Qualifiers.PROJECT, Qualifiers.MODULE, Qualifiers.DIRECTORY, Qualifiers.FILE);
     languages = mock(Languages.class);
     when(languages.all()).thenReturn(javaLanguage());
 
-    ws = new WsActionTester(new SearchAction(db.getDbClient(), index, resourceTypes, i18n, userSession, languages));
+    ws = new WsActionTester(new SearchAction(db.getDbClient(), resourceTypes, i18n, userSession, languages));
   }
 
   @Test

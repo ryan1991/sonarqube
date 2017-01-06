@@ -30,11 +30,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.sonar.api.config.MapSettings;
 import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.utils.Paging;
 import org.sonar.api.utils.System2;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbTester;
-import org.sonar.db.component.ComponentQuery;
 import org.sonar.server.es.EsTester;
 
 import static java.util.Arrays.asList;
@@ -137,13 +135,12 @@ public class ComponentSuggestionIndexTest {
   }
 
   private void assertSearch(Collection<ComponentSuggestionDoc> input, String queryText, Collection<String> expectedOutput) {
-    List<String> result = search(input, queryText);
-    assertThat(result).hasSameElementsAs(expectedOutput);
+    assertThat(search(input, queryText))
+      .hasSameElementsAs(expectedOutput);
   }
 
-  private List<String> search(Collection<ComponentSuggestionDoc> input, String queryText) {
+  private List<String> search(Collection<ComponentSuggestionDoc> input, String query) {
     input.stream().forEach(indexer::index);
-    ComponentQuery query = ComponentQuery.builder().setNameOrKeyQuery(queryText).setQualifiers(QUALIFIERS).build();
-    return index.search(query, Paging.forPageIndex(1).withPageSize(PAGE_SIZE).andTotal(PAGE_SIZE));
+    return index.search(query);
   }
 }
