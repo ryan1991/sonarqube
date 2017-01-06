@@ -38,6 +38,7 @@ import org.sonarqube.ws.WsComponents.Component;
 import org.sonarqube.ws.WsComponents.SearchWsResponse;
 
 import static org.sonar.server.ws.WsUtils.writeProtobuf;
+import static org.sonarqube.ws.client.component.ComponentsWsParameters.ACTION_SUGGESTIONS;
 
 public class SuggestionsAction implements ComponentsWsAction {
   private final DbClient dbClient;
@@ -50,11 +51,11 @@ public class SuggestionsAction implements ComponentsWsAction {
 
   @Override
   public void define(WebService.NewController context) {
-    NewAction action = context.createAction("suggestions")
+    NewAction action = context.createAction(ACTION_SUGGESTIONS)
       .setDescription("Internal WS for the top-right search engine")
       .setSince("4.2")
       .setInternal(true)
-      .setHandler(RailsHandler.INSTANCE)
+      .setHandler(this)
       .setResponseExample(Resources.getResource(this.getClass(), "components-example-suggestions.json"));
 
     action.createParam("s")
