@@ -55,19 +55,23 @@ public class ComponentSuggestionIndexer implements Startable {
    * Copy all database contents to the elastic search index.
    */
   public void index() {
+    System.out.println("indexing all components ...");
     try (DbSession dbSession = dbClient.openSession(false)) {
       dbClient.componentDao()
         .selectAll(dbSession, context -> index((ComponentDto) context.getResultObject()));
     }
+    System.out.println("indexing all components done");
   }
 
   /**
    * Update the elastic search for one specific project. The current data from the database is used.
    */
   public void index(String projectUuid) {
+    System.out.println("indexing components of project " + projectUuid + " ...");
     try (DbSession dbSession = dbClient.openSession(false)) {
       index(dbClient.componentDao().selectByProjectUuid(projectUuid, dbSession).stream());
     }
+    System.out.println("indexing components of project " + projectUuid + " done");
   }
 
   private void index(Stream<ComponentDto> components) {
@@ -88,6 +92,11 @@ public class ComponentSuggestionIndexer implements Startable {
   }
 
   private void indexNow(ComponentSuggestionDoc doc) {
+    System.out.println("  indexing document " + doc.getId());
+    System.out.println("    key:" + doc.getKey());
+    System.out.println("    name:" + doc.getName());
+    System.out.println("    projectUuid:" + doc.getProjectUuid());
+    System.out.println("    qualifier:" + doc.getQualifier());
     BulkIndexer bulk = new BulkIndexer(esClient, INDEX_COMPONENT_SUGGESTION);// TODO reuse bulk indexer
     bulk.setLarge(false);
     bulk.start();
