@@ -28,7 +28,6 @@ import org.sonar.api.server.ws.Request;
 import org.sonar.api.server.ws.Response;
 import org.sonar.api.server.ws.WebService;
 import org.sonar.api.server.ws.WebService.NewAction;
-import org.sonar.api.server.ws.WebService.Param;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
 import org.sonar.db.component.ComponentDto;
@@ -41,6 +40,9 @@ import static org.sonar.server.ws.WsUtils.writeProtobuf;
 import static org.sonarqube.ws.client.component.ComponentsWsParameters.ACTION_SUGGESTIONS;
 
 public class SuggestionsAction implements ComponentsWsAction {
+
+  private static final String URL_PARAM_QUERY = "s";
+  
   private final DbClient dbClient;
   private final ComponentSuggestionIndex index;
 
@@ -58,7 +60,7 @@ public class SuggestionsAction implements ComponentsWsAction {
       .setHandler(this)
       .setResponseExample(Resources.getResource(this.getClass(), "components-example-suggestions.json"));
 
-    action.createParam("s")
+    action.createParam(URL_PARAM_QUERY)
       .setRequired(true)
       .setDescription("Substring of project key (minimum 2 characters)")
       .setExampleValue("sonar");
@@ -68,7 +70,7 @@ public class SuggestionsAction implements ComponentsWsAction {
 
   @Override
   public void handle(Request wsRequest, Response wsResponse) throws Exception {
-    SearchWsResponse searchWsResponse = doHandle(wsRequest.param(Param.TEXT_QUERY));
+    SearchWsResponse searchWsResponse = doHandle(wsRequest.param(URL_PARAM_QUERY));
     writeProtobuf(searchWsResponse, wsRequest, wsResponse);
   }
 
