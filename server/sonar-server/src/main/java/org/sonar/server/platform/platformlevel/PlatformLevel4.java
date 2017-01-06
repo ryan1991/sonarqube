@@ -41,6 +41,9 @@ import org.sonar.server.component.ComponentService;
 import org.sonar.server.component.DefaultComponentFinder;
 import org.sonar.server.component.DefaultRubyComponentService;
 import org.sonar.server.component.es.ProjectsEsModule;
+import org.sonar.server.component.suggestion.index.ComponentSuggestionIndex;
+import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition;
+import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexer;
 import org.sonar.server.component.ws.ComponentsWsModule;
 import org.sonar.server.config.ws.PropertiesWs;
 import org.sonar.server.debt.DebtModelBackup;
@@ -365,6 +368,9 @@ public class PlatformLevel4 extends PlatformLevel {
       NewAlerts.class,
       NewAlerts.newMetadata(),
       ComponentCleanerService.class,
+      ComponentSuggestionIndexDefinition.class,
+      ComponentSuggestionIndex.class,
+      ComponentSuggestionIndexer.class,
 
       FavoriteModule.class,
 

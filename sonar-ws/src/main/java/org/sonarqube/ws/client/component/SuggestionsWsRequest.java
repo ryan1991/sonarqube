@@ -17,26 +17,18 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.server.component.ws;
+package org.sonarqube.ws.client.component;
 
-import org.sonar.core.platform.Module;
+public class SuggestionsWsRequest {
 
-public class ComponentsWsModule extends Module {
-  @Override
-  protected void configureModule() {
-    add(
-      ResourcesWs.class,
-      ComponentsWs.class,
-      // actions
-      AppAction.class,
-      SearchAction.class,
-      SuggestionsAction.class,
-      TreeAction.class,
-      ShowAction.class,
-      SearchViewComponentsAction.class,
-      UpdateKeyAction.class,
-      BulkUpdateKeyAction.class,
-      SearchProjectsAction.class,
-      ProjectMeasuresQueryValidator.class);
+  private String query;
+
+  public String getQuery() {
+    return query;
+  }
+
+  public SuggestionsWsRequest setQuery(String query) {
+    this.query = query;
+    return this;
   }
 }

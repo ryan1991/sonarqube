@@ -69,6 +69,7 @@ import org.sonar.server.component.ComponentCleanerService;
 import org.sonar.server.component.ComponentFinder;
 import org.sonar.server.component.ComponentService;
 import org.sonar.server.component.es.ProjectMeasuresIndexer;
+import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexer;
 import org.sonar.server.computation.queue.PurgeCeActivities;
 import org.sonar.server.computation.task.projectanalysis.ProjectAnalysisTaskModule;
 import org.sonar.server.computation.taskprocessor.CeTaskProcessorModule;
@@ -340,6 +341,7 @@ public class ComputeEngineContainerImpl implements ComputeEngineContainer {
       NewAlerts.newMetadata(),
       ComponentCleanerService.class,
       ProjectMeasuresIndexer.class,
+      ComponentSuggestionIndexer.class,
 
       // views
       ViewIndexer.class,

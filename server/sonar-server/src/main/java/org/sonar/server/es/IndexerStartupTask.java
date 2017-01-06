@@ -23,6 +23,7 @@ import org.sonar.api.config.Settings;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.server.component.es.ProjectMeasuresIndexer;
+import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexer;
 import org.sonar.server.issue.index.IssueIndexer;
 import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.test.index.TestIndexer;
@@ -39,6 +40,7 @@ public class IndexerStartupTask {
   private final UserIndexer userIndexer;
   private final ViewIndexer viewIndexer;
   private final ProjectMeasuresIndexer projectMeasuresIndexer;
+  private final ComponentSuggestionIndexer componentIndexer;
   private final Settings settings;
 
   /**
@@ -47,14 +49,16 @@ public class IndexerStartupTask {
    * {@link org.sonar.server.issue.index.IssueIndexer}
    */
   public IndexerStartupTask(TestIndexer testIndexer, PermissionIndexer permissionIndexer, IssueIndexer issueIndexer,
-                            UserIndexer userIndexer, ViewIndexer viewIndexer, ProjectMeasuresIndexer projectMeasuresIndexer,
-                            Settings settings) {
+    UserIndexer userIndexer, ViewIndexer viewIndexer, ProjectMeasuresIndexer projectMeasuresIndexer,
+    ComponentSuggestionIndexer componentIndexer,
+    Settings settings) {
     this.testIndexer = testIndexer;
     this.permissionIndexer = permissionIndexer;
     this.issueIndexer = issueIndexer;
     this.userIndexer = userIndexer;
     this.viewIndexer = viewIndexer;
     this.projectMeasuresIndexer = projectMeasuresIndexer;
+    this.componentIndexer = componentIndexer;
     this.settings = settings;
   }
 
@@ -78,6 +82,12 @@ public class IndexerStartupTask {
 
       LOG.info("Index project measures");
       projectMeasuresIndexer.index();
+
+      LOG.info("Index project measures");
+      projectMeasuresIndexer.index();
+
+      LOG.info("Index components");
+      componentIndexer.index();
     }
   }
 
