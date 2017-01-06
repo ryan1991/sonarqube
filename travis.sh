@@ -18,7 +18,7 @@ function installPhantomJs {
 
 function configureTravis {
   mkdir ~/.local
-  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v31 | tar zx --strip-components 1 -C ~/.local
+  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v33 | tar zx --strip-components 1 -C ~/.local
   source ~/.local/bin/install
 }
 configureTravis
@@ -34,7 +34,7 @@ CI)
   if [[ $INITIAL_VERSION =~ "-SNAPSHOT" ]]; then
     echo "======= Found SNAPSHOT version ======="
     # Do not deploy a SNAPSHOT version but the release version related to this build
-    set_maven_build_version $TRAVIS_BUILD_NUMBER
+    . set_maven_build_version $TRAVIS_BUILD_NUMBER
   else
     echo "======= Found RELEASE version ======="
   fi
@@ -58,8 +58,6 @@ CI)
 
   elif [[ "$TRAVIS_BRANCH" == "branch-"* ]] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     echo 'release branch: trigger QA, no analysis'
-
-    export PROJECT_VERSION=`maven_expression "project.version"`
 
     mvn deploy \
         $MAVEN_OPTIONS \
