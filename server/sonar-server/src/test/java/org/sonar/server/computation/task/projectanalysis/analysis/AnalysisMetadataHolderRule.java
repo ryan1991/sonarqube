@@ -21,7 +21,6 @@ package org.sonar.server.computation.task.projectanalysis.analysis;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.junit.rules.ExternalResource;
@@ -30,10 +29,11 @@ import org.sonar.server.qualityprofile.QualityProfile;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Objects.requireNonNull;
 
 public class AnalysisMetadataHolderRule extends ExternalResource implements MutableAnalysisMetadataHolder {
 
-  private final InitializedProperty<String> organizationUuid = new InitializedProperty<>();
+  private final InitializedProperty<Organization> organization = new InitializedProperty<>();
 
   private final InitializedProperty<String> uuid = new InitializedProperty<>();
 
@@ -50,16 +50,22 @@ public class AnalysisMetadataHolderRule extends ExternalResource implements Muta
   private final InitializedProperty<Map<String, QualityProfile>> qProfilesPerLanguage = new InitializedProperty<>();
 
   @Override
-  public AnalysisMetadataHolderRule setOrganizationUuid(String organizationUuid) {
-    Objects.requireNonNull(organizationUuid, "organizationUuid can't be null");
-    this.organizationUuid.setProperty(organizationUuid);
+  public AnalysisMetadataHolderRule setOrganization(Organization organization) {
+    requireNonNull(organization, "organization can't be null");
+    this.organization.setProperty(organization);
+    return this;
+  }
+
+  public AnalysisMetadataHolderRule setOrganizationUuid(String uuid) {
+    requireNonNull(uuid, "organization uuid can't be null");
+    this.organization.setProperty(new Organization.Builder().setUuid(uuid).setKey("key_" + uuid).setName("name_" + uuid).build());
     return this;
   }
 
   @Override
-  public String getOrganizationUuid() {
-    checkState(organizationUuid.isInitialized(), "Organization UUID has not been set");
-    return this.organizationUuid.getProperty();
+  public Organization getOrganization() {
+    checkState(organization.isInitialized(), "Organization has not been set");
+    return this.organization.getProperty();
   }
 
   @Override
