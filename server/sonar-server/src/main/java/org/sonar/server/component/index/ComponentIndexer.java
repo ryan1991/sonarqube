@@ -36,8 +36,8 @@ import org.sonar.db.component.ComponentDto;
 import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.EsClient;
 
-import static org.sonar.server.component.index.ComponentIndexDefinition.INDEX_COMPONENT_SUGGESTION;
-import static org.sonar.server.component.index.ComponentIndexDefinition.TYPE_COMPONENT_SUGGESTION;
+import static org.sonar.server.component.index.ComponentIndexDefinition.INDEX_COMPONENTS;
+import static org.sonar.server.component.index.ComponentIndexDefinition.TYPE_COMPONENT;
 
 public class ComponentIndexer implements Startable {
 
@@ -97,7 +97,7 @@ public class ComponentIndexer implements Startable {
     System.out.println("    name:" + doc.getName());
     System.out.println("    projectUuid:" + doc.getProjectUuid());
     System.out.println("    qualifier:" + doc.getQualifier());
-    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_COMPONENT_SUGGESTION);// TODO reuse bulk indexer
+    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_COMPONENTS);// TODO reuse bulk indexer
     bulk.setLarge(false);
     bulk.start();
     bulk.add(newIndexRequest(doc));
@@ -105,7 +105,7 @@ public class ComponentIndexer implements Startable {
   }
 
   private static IndexRequest newIndexRequest(ComponentDoc doc) {
-    return new IndexRequest(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION, doc.getId())
+    return new IndexRequest(INDEX_COMPONENTS, TYPE_COMPONENT, doc.getId())
       .source(doc.getFields());
   }
 

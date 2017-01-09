@@ -25,8 +25,8 @@ import org.sonar.server.es.NewIndex;
 
 public class ComponentIndexDefinition implements IndexDefinition {
 
-  public static final String INDEX_COMPONENT_SUGGESTION = "componentsuggestions";
-  public static final String TYPE_COMPONENT_SUGGESTION = "componentsuggestion";
+  public static final String INDEX_COMPONENTS = "components";
+  public static final String TYPE_COMPONENT = "component";
 
   public static final String FIELD_UUID = "uuid";
   public static final String FIELD_PROJECT_UUID = "uuid";
@@ -44,12 +44,12 @@ public class ComponentIndexDefinition implements IndexDefinition {
 
   @Override
   public void define(IndexDefinitionContext context) {
-    NewIndex index = context.create(INDEX_COMPONENT_SUGGESTION);
+    NewIndex index = context.create(INDEX_COMPONENTS);
     index.refreshHandledByIndexer();
     index.configureShards(settings, DEFAULT_NUMBER_OF_SHARDS);
 
-    // type "componentsuggestion"
-    NewIndex.NewIndexType mapping = index.createType(TYPE_COMPONENT_SUGGESTION);
+    // type "component"
+    NewIndex.NewIndexType mapping = index.createType(TYPE_COMPONENT);
     mapping.stringFieldBuilder(FIELD_UUID).disableNorms().build();
     mapping.stringFieldBuilder(FIELD_PROJECT_UUID).build();
     mapping.stringFieldBuilder(FIELD_KEY).build();

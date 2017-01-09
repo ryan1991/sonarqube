@@ -37,8 +37,8 @@ import static org.sonar.server.component.index.ComponentIndexDefinition.FIELD_KE
 import static org.sonar.server.component.index.ComponentIndexDefinition.FIELD_NAME;
 import static org.sonar.server.component.index.ComponentIndexDefinition.FIELD_QUALIFIER;
 import static org.sonar.server.component.index.ComponentIndexDefinition.FIELD_UUID;
-import static org.sonar.server.component.index.ComponentIndexDefinition.INDEX_COMPONENT_SUGGESTION;
-import static org.sonar.server.component.index.ComponentIndexDefinition.TYPE_COMPONENT_SUGGESTION;
+import static org.sonar.server.component.index.ComponentIndexDefinition.INDEX_COMPONENTS;
+import static org.sonar.server.component.index.ComponentIndexDefinition.TYPE_COMPONENT;
 
 public class ComponentIndex extends BaseIndex {
 
@@ -61,8 +61,8 @@ public class ComponentIndex extends BaseIndex {
   public List<String> searchIds(ComponentIndexQuery query) {
     System.out.println("search " + query.getQualifier());
     SearchRequestBuilder requestBuilder = getClient()
-      .prepareSearch(INDEX_COMPONENT_SUGGESTION)
-      .setTypes(TYPE_COMPONENT_SUGGESTION)
+      .prepareSearch(INDEX_COMPONENTS)
+      .setTypes(TYPE_COMPONENT)
       .setFetchSource(false)
       .addField(FIELD_UUID)
       .addSort(FIELD_NAME + "." + SORT_SUFFIX, SortOrder.ASC);

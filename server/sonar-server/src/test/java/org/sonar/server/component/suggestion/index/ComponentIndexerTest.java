@@ -33,8 +33,8 @@ import org.sonar.server.component.index.ComponentIndexer;
 import org.sonar.server.es.EsTester;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.sonar.server.component.index.ComponentIndexDefinition.INDEX_COMPONENT_SUGGESTION;
-import static org.sonar.server.component.index.ComponentIndexDefinition.TYPE_COMPONENT_SUGGESTION;
+import static org.sonar.server.component.index.ComponentIndexDefinition.INDEX_COMPONENTS;
+import static org.sonar.server.component.index.ComponentIndexDefinition.TYPE_COMPONENT;
 
 public class ComponentIndexerTest {
 
@@ -85,7 +85,7 @@ public class ComponentIndexerTest {
 
     ComponentIndexer indexer = createIndexer();
     indexer.index("UUID-2");
-    long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
+    long countDocuments = esTester.countDocuments(INDEX_COMPONENTS, TYPE_COMPONENT);
 
     assertThat(countDocuments).isEqualTo(0);
   }
@@ -105,7 +105,7 @@ public class ComponentIndexerTest {
 
     ComponentIndexer indexer = createIndexer();
     indexer.index("UUID-1");
-    long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
+    long countDocuments = esTester.countDocuments(INDEX_COMPONENTS, TYPE_COMPONENT);
 
     assertThat(countDocuments).isEqualTo(0);
   }
@@ -138,7 +138,7 @@ public class ComponentIndexerTest {
 
     ComponentIndexer indexer = createIndexer();
     indexer.index("UUID-PROJECT-1");
-    long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
+    long countDocuments = esTester.countDocuments(INDEX_COMPONENTS, TYPE_COMPONENT);
 
     assertThat(countDocuments).isEqualTo(2);
   }
@@ -146,7 +146,7 @@ public class ComponentIndexerTest {
   private long indexAndReturnCount() {
     ComponentIndexer indexer = createIndexer();
     indexer.index();
-    long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
+    long countDocuments = esTester.countDocuments(INDEX_COMPONENTS, TYPE_COMPONENT);
     return countDocuments;
   }
 
