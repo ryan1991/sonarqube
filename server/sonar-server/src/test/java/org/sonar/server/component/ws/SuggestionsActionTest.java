@@ -31,6 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SuggestionsActionTest {
 
+  // FIXME add tests for all the other methods of SuggestionsAction
+
   @Test
   public void calculate_total_without_qualifier() {
     assertTotal(0);

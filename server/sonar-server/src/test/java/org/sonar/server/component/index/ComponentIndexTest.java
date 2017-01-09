@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.server.component.suggestion.index;
+package org.sonar.server.component.index;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,11 +31,6 @@ import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.System2;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbTester;
-import org.sonar.server.component.index.ComponentDoc;
-import org.sonar.server.component.index.ComponentIndex;
-import org.sonar.server.component.index.ComponentIndexDefinition;
-import org.sonar.server.component.index.ComponentIndexQuery;
-import org.sonar.server.component.index.ComponentIndexer;
 import org.sonar.server.es.EsTester;
 
 import static java.util.Arrays.asList;
@@ -43,10 +38,6 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentIndexTest {
-
-  private static final int PAGE_SIZE = 6;
-  private static final String[] QUALIFIERS = {Qualifiers.VIEW, Qualifiers.SUBVIEW, Qualifiers.PROJECT, Qualifiers.FILE, Qualifiers.UNIT_TEST_FILE,
-    Qualifiers.DIRECTORY, Qualifiers.MODULE};
 
   private static final String BLA = "bla";
   private static final String UUID_DOC = "UUID-DOC-";
@@ -77,10 +68,7 @@ public class ComponentIndexTest {
 
   @Test
   public void empty_search() {
-    assertSearch(
-      asList(),
-      BLA,
-      emptyList());
+    assertSearch(emptyList(), BLA, emptyList());
   }
 
   @Test
@@ -129,10 +117,12 @@ public class ComponentIndexTest {
   @Test
   public void limit_number_of_documents() {
     Collection<ComponentDoc> docs = IntStream
-      .rangeClosed(1, PAGE_SIZE + 1)
+      .rangeClosed(1, 42)
       .mapToObj(i -> newDoc(UUID_DOC + i, BLA, KEY + i, Qualifiers.PROJECT))
       .collect(Collectors.toList());
-    assertThat(search(docs, BLA)).hasSize(PAGE_SIZE);
+
+    int pageSize = 41;
+    assertThat(search(docs, new ComponentIndexQuery(Qualifiers.PROJECT, BLA, pageSize))).hasSize(pageSize);
   }
 
   private void assertMatch(String name, String query) {
@@ -172,7 +162,11 @@ public class ComponentIndexTest {
   }
 
   private List<String> search(Collection<ComponentDoc> input, String query) {
+    return search(input, new ComponentIndexQuery(Qualifiers.PROJECT, query));
+  }
+
+  private List<String> search(Collection<ComponentDoc> input, ComponentIndexQuery query) {
     input.stream().forEach(indexer::index);
-    return index.searchIds(new ComponentIndexQuery(Qualifiers.PROJECT, query));
+    return index.searchIds(query);
   }
 }
