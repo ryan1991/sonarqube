@@ -82,6 +82,11 @@ public class ComponentSuggestionIndexTest {
   }
 
   @Test
+  public void ignore_case() {
+    assertMatch("bLa", "BlA");
+  }
+
+  @Test
   public void prefix_match_search() {
     assertMatch(PREFIX_MIDDLE_SUFFIX, PREFIX);
   }
