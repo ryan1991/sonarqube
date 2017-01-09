@@ -91,7 +91,7 @@ public class SubmitAction implements CeWsAction {
   public void handle(Request wsRequest, Response wsResponse) throws Exception {
     String organizationKey = wsRequest.getParam(PARAM_ORGANIZATION_KEY)
       .emptyAsNull()
-      .or(() -> defaultOrganizationProvider.get().getKey());
+      .or(defaultOrganizationProvider.get()::getKey);
     String projectKey = wsRequest.mandatoryParam(PARAM_PROJECT_KEY);
     String projectBranch = wsRequest.param(PARAM_PROJECT_BRANCH);
     String projectName = StringUtils.defaultIfBlank(wsRequest.param(PARAM_PROJECT_NAME), projectKey);
