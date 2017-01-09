@@ -22,9 +22,9 @@ package org.sonar.server.es;
 import org.sonar.api.config.Settings;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.server.component.es.ProjectMeasuresIndexer;
-import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexer;
+import org.sonar.server.component.index.ComponentIndexer;
 import org.sonar.server.issue.index.IssueIndexer;
+import org.sonar.server.measure.index.ProjectMeasuresIndexer;
 import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.test.index.TestIndexer;
 import org.sonar.server.user.index.UserIndexer;
@@ -40,7 +40,7 @@ public class IndexerStartupTask {
   private final UserIndexer userIndexer;
   private final ViewIndexer viewIndexer;
   private final ProjectMeasuresIndexer projectMeasuresIndexer;
-  private final ComponentSuggestionIndexer componentIndexer;
+  private final ComponentIndexer componentIndexer;
   private final Settings settings;
 
   /**
@@ -50,7 +50,7 @@ public class IndexerStartupTask {
    */
   public IndexerStartupTask(TestIndexer testIndexer, PermissionIndexer permissionIndexer, IssueIndexer issueIndexer,
     UserIndexer userIndexer, ViewIndexer viewIndexer, ProjectMeasuresIndexer projectMeasuresIndexer,
-    ComponentSuggestionIndexer componentIndexer,
+    ComponentIndexer componentIndexer,
     Settings settings) {
     this.testIndexer = testIndexer;
     this.permissionIndexer = permissionIndexer;

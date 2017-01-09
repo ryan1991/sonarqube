@@ -22,7 +22,7 @@ package org.sonar.server.computation.task.projectanalysis.step;
 import org.junit.Rule;
 import org.junit.Test;
 import org.sonar.db.component.ResourceIndexDao;
-import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexer;
+import org.sonar.server.component.index.ComponentIndexer;
 import org.sonar.server.computation.task.projectanalysis.batch.BatchReportReaderRule;
 import org.sonar.server.computation.task.projectanalysis.component.Component;
 import org.sonar.server.computation.task.projectanalysis.component.ReportComponent;
@@ -46,7 +46,7 @@ public class IndexComponentsStepTest extends BaseStepTest {
   public BatchReportReaderRule reportReader = new BatchReportReaderRule();
 
   ResourceIndexDao resourceIndexDao = mock(ResourceIndexDao.class);
-  ComponentSuggestionIndexer elasticSearchIndexer = mock(ComponentSuggestionIndexer.class);
+  ComponentIndexer elasticSearchIndexer = mock(ComponentIndexer.class);
   IndexComponentsStep underTest = new IndexComponentsStep(resourceIndexDao, elasticSearchIndexer, treeRootHolder);
 
   @Test

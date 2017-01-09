@@ -17,20 +17,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.server.component.suggestion.index;
+package org.sonar.server.component.index;
 
 import java.util.HashMap;
 import org.sonar.server.es.BaseDoc;
 
-public class ComponentSuggestionDoc extends BaseDoc {
+public class ComponentDoc extends BaseDoc {
 
-  public ComponentSuggestionDoc() {
+  public ComponentDoc() {
     super(new HashMap<>(3));
   }
 
   @Override
   public String getId() {
-    return getField(ComponentSuggestionIndexDefinition.FIELD_UUID);
+    return getField(ComponentIndexDefinition.FIELD_UUID);
   }
 
   @Override
@@ -43,44 +43,44 @@ public class ComponentSuggestionDoc extends BaseDoc {
     return getId();
   }
 
-  public ComponentSuggestionDoc setId(String s) {
-    setField(ComponentSuggestionIndexDefinition.FIELD_UUID, s);
+  public ComponentDoc setId(String s) {
+    setField(ComponentIndexDefinition.FIELD_UUID, s);
     return this;
   }
 
   public String getProjectUuid() {
-    return getField(ComponentSuggestionIndexDefinition.FIELD_PROJECT_UUID);
+    return getField(ComponentIndexDefinition.FIELD_PROJECT_UUID);
   }
 
-  public ComponentSuggestionDoc setProjectUuid(String s) {
-    setField(ComponentSuggestionIndexDefinition.FIELD_PROJECT_UUID, s);
+  public ComponentDoc setProjectUuid(String s) {
+    setField(ComponentIndexDefinition.FIELD_PROJECT_UUID, s);
     return this;
   }
 
   public String getKey() {
-    return getField(ComponentSuggestionIndexDefinition.FIELD_KEY);
+    return getField(ComponentIndexDefinition.FIELD_KEY);
   }
 
-  public ComponentSuggestionDoc setKey(String s) {
-    setField(ComponentSuggestionIndexDefinition.FIELD_KEY, s);
+  public ComponentDoc setKey(String s) {
+    setField(ComponentIndexDefinition.FIELD_KEY, s);
     return this;
   }
 
   public String getName() {
-    return getField(ComponentSuggestionIndexDefinition.FIELD_NAME);
+    return getField(ComponentIndexDefinition.FIELD_NAME);
   }
 
-  public ComponentSuggestionDoc setName(String s) {
-    setField(ComponentSuggestionIndexDefinition.FIELD_NAME, s);
+  public ComponentDoc setName(String s) {
+    setField(ComponentIndexDefinition.FIELD_NAME, s);
     return this;
   }
 
   public String getQualifier() {
-    return getField(ComponentSuggestionIndexDefinition.FIELD_QUALIFIER);
+    return getField(ComponentIndexDefinition.FIELD_QUALIFIER);
   }
 
-  public ComponentSuggestionDoc setQualifier(String s) {
-    setField(ComponentSuggestionIndexDefinition.FIELD_QUALIFIER, s);
+  public ComponentDoc setQualifier(String s) {
+    setField(ComponentIndexDefinition.FIELD_QUALIFIER, s);
     return this;
   }
 }

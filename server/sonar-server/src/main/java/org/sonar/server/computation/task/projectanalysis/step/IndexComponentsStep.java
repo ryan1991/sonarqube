@@ -20,7 +20,7 @@
 package org.sonar.server.computation.task.projectanalysis.step;
 
 import org.sonar.db.component.ResourceIndexDao;
-import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexer;
+import org.sonar.server.component.index.ComponentIndexer;
 import org.sonar.server.computation.task.projectanalysis.component.TreeRootHolder;
 import org.sonar.server.computation.task.step.ComputationStep;
 
@@ -30,10 +30,10 @@ import org.sonar.server.computation.task.step.ComputationStep;
 public class IndexComponentsStep implements ComputationStep {
 
   private final ResourceIndexDao resourceIndexDao;
-  private ComponentSuggestionIndexer elasticSearchIndexer;
+  private ComponentIndexer elasticSearchIndexer;
   private final TreeRootHolder treeRootHolder;
 
-  public IndexComponentsStep(ResourceIndexDao resourceIndexDao, ComponentSuggestionIndexer elasticSearchIndexer, TreeRootHolder treeRootHolder) {
+  public IndexComponentsStep(ResourceIndexDao resourceIndexDao, ComponentIndexer elasticSearchIndexer, TreeRootHolder treeRootHolder) {
     this.resourceIndexDao = resourceIndexDao;
     this.elasticSearchIndexer = elasticSearchIndexer;
     this.treeRootHolder = treeRootHolder;

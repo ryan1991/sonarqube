@@ -40,10 +40,9 @@ import org.sonar.server.component.ComponentFinder;
 import org.sonar.server.component.ComponentService;
 import org.sonar.server.component.DefaultComponentFinder;
 import org.sonar.server.component.DefaultRubyComponentService;
-import org.sonar.server.component.es.ProjectsEsModule;
-import org.sonar.server.component.suggestion.index.ComponentSuggestionIndex;
-import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition;
-import org.sonar.server.component.suggestion.index.ComponentSuggestionIndexer;
+import org.sonar.server.component.index.ComponentIndex;
+import org.sonar.server.component.index.ComponentIndexDefinition;
+import org.sonar.server.component.index.ComponentIndexer;
 import org.sonar.server.component.ws.ComponentsWsModule;
 import org.sonar.server.config.ws.PropertiesWs;
 import org.sonar.server.debt.DebtModelBackup;
@@ -80,6 +79,7 @@ import org.sonar.server.issue.ws.IssueWsModule;
 import org.sonar.server.language.ws.LanguageWs;
 import org.sonar.server.license.ws.LicensesWsModule;
 import org.sonar.server.measure.custom.ws.CustomMeasuresWsModule;
+import org.sonar.server.measure.index.ProjectsEsModule;
 import org.sonar.server.measure.template.MyFavouritesFilter;
 import org.sonar.server.measure.template.ProjectFilter;
 import org.sonar.server.measure.ws.MeasuresWsModule;
@@ -368,9 +368,9 @@ public class PlatformLevel4 extends PlatformLevel {
       NewAlerts.class,
       NewAlerts.newMetadata(),
       ComponentCleanerService.class,
-      ComponentSuggestionIndexDefinition.class,
-      ComponentSuggestionIndex.class,
-      ComponentSuggestionIndexer.class,
+      ComponentIndexDefinition.class,
+      ComponentIndex.class,
+      ComponentIndexer.class,
 
       FavoriteModule.class,
 

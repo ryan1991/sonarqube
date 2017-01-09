@@ -19,7 +19,6 @@
  */
 package org.sonar.server.component.suggestion.index;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,13 +31,18 @@ import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.System2;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbTester;
+import org.sonar.server.component.index.ComponentDoc;
+import org.sonar.server.component.index.ComponentIndex;
+import org.sonar.server.component.index.ComponentIndexDefinition;
+import org.sonar.server.component.index.ComponentIndexQuery;
+import org.sonar.server.component.index.ComponentIndexer;
 import org.sonar.server.es.EsTester;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ComponentSuggestionIndexTest {
+public class ComponentIndexTest {
 
   private static final int PAGE_SIZE = 6;
   private static final String[] QUALIFIERS = {Qualifiers.VIEW, Qualifiers.SUBVIEW, Qualifiers.PROJECT, Qualifiers.FILE, Qualifiers.UNIT_TEST_FILE,
@@ -56,16 +60,19 @@ public class ComponentSuggestionIndexTest {
   private static final String PREFIX_MIDDLE_SUFFIX = PREFIX + MIDDLE + SUFFIX;
 
   @Rule
-  public EsTester es = new EsTester(new ComponentSuggestionIndexDefinition(new MapSettings()));
+  public EsTester es = new EsTester(new ComponentIndexDefinition(new MapSettings()));
 
-  private ComponentSuggestionIndex index;
-  private ComponentSuggestionIndexer indexer;
+  @Rule
+  public DbTester db = DbTester.create(System2.INSTANCE);
+
+  private ComponentIndex index;
+  private ComponentIndexer indexer;
 
   @Before
   public void setUp() {
-    index = new ComponentSuggestionIndex(es.client());
+    index = new ComponentIndex(db.getDbClient(), es.client());
     DbClient dbClient = DbTester.create(System2.INSTANCE).getDbClient();
-    indexer = new ComponentSuggestionIndexer(dbClient, es.client());
+    indexer = new ComponentIndexer(dbClient, es.client());
   }
 
   @Test
@@ -121,24 +128,11 @@ public class ComponentSuggestionIndexTest {
 
   @Test
   public void limit_number_of_documents() {
-    Collection<ComponentSuggestionDoc> docs = IntStream
+    Collection<ComponentDoc> docs = IntStream
       .rangeClosed(1, PAGE_SIZE + 1)
       .mapToObj(i -> newDoc(UUID_DOC + i, BLA, KEY + i, Qualifiers.PROJECT))
       .collect(Collectors.toList());
     assertThat(search(docs, BLA)).hasSize(PAGE_SIZE);
-  }
-
-  @Test
-  public void limit_number_of_documents_per_qualifier() {
-
-    // create one document for each qualifier
-    Collection<ComponentSuggestionDoc> docs = Arrays
-      .stream(QUALIFIERS)
-      .map(q -> newDoc(UUID_DOC + q, BLA, KEY + q, q))
-      .collect(Collectors.toList());
-
-    List<String> ids = docs.stream().map(d -> d.getId()).collect(Collectors.toList());
-    assertThat(search(docs, BLA)).hasSameElementsAs(ids);
   }
 
   private void assertMatch(String name, String query) {
@@ -155,16 +149,16 @@ public class ComponentSuggestionIndexTest {
       emptyList());
   }
 
-  private ComponentSuggestionDoc newDoc(String name) {
+  private ComponentDoc newDoc(String name) {
     return newDoc(UUID_DOC_1, name);
   }
 
-  private ComponentSuggestionDoc newDoc(String uuid, String name) {
+  private ComponentDoc newDoc(String uuid, String name) {
     return newDoc(uuid, name, KEY_1, Qualifiers.PROJECT);
   }
 
-  private ComponentSuggestionDoc newDoc(String uuid, String name, String key, String qualifier) {
-    ComponentSuggestionDoc doc = new ComponentSuggestionDoc();
+  private ComponentDoc newDoc(String uuid, String name, String key, String qualifier) {
+    ComponentDoc doc = new ComponentDoc();
     doc.setId(uuid);
     doc.setName(name);
     doc.setKey(key);
@@ -172,13 +166,13 @@ public class ComponentSuggestionIndexTest {
     return doc;
   }
 
-  private void assertSearch(Collection<ComponentSuggestionDoc> input, String queryText, Collection<String> expectedOutput) {
+  private void assertSearch(Collection<ComponentDoc> input, String queryText, Collection<String> expectedOutput) {
     assertThat(search(input, queryText))
       .hasSameElementsAs(expectedOutput);
   }
 
-  private List<String> search(Collection<ComponentSuggestionDoc> input, String query) {
+  private List<String> search(Collection<ComponentDoc> input, String query) {
     input.stream().forEach(indexer::index);
-    return index.search(query);
+    return index.searchIds(new ComponentIndexQuery(Qualifiers.PROJECT, query));
   }
 }

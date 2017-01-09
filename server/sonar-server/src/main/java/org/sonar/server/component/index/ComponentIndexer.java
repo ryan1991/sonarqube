@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package org.sonar.server.component.suggestion.index;
+package org.sonar.server.component.index;
 
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -36,16 +36,16 @@ import org.sonar.db.component.ComponentDto;
 import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.EsClient;
 
-import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.INDEX_COMPONENT_SUGGESTION;
-import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.TYPE_COMPONENT_SUGGESTION;
+import static org.sonar.server.component.index.ComponentIndexDefinition.INDEX_COMPONENT_SUGGESTION;
+import static org.sonar.server.component.index.ComponentIndexDefinition.TYPE_COMPONENT_SUGGESTION;
 
-public class ComponentSuggestionIndexer implements Startable {
+public class ComponentIndexer implements Startable {
 
   private final ThreadPoolExecutor executor;// TODO avoid duplications from PermissionIndexer
   private final DbClient dbClient;
   private final EsClient esClient;
 
-  public ComponentSuggestionIndexer(DbClient dbClient, EsClient esClient) {
+  public ComponentIndexer(DbClient dbClient, EsClient esClient) {
     this.executor = new ThreadPoolExecutor(0, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     this.dbClient = dbClient;
     this.esClient = esClient;
@@ -82,7 +82,7 @@ public class ComponentSuggestionIndexer implements Startable {
     index(toDocument(doc));
   }
 
-  public void index(ComponentSuggestionDoc document) {
+  public void index(ComponentDoc document) {
     Future<?> submit = executor.submit(() -> indexNow(document));
     try {
       Uninterruptibles.getUninterruptibly(submit);
@@ -91,7 +91,7 @@ public class ComponentSuggestionIndexer implements Startable {
     }
   }
 
-  private void indexNow(ComponentSuggestionDoc doc) {
+  private void indexNow(ComponentDoc doc) {
     System.out.println("  indexing document " + doc.getId());
     System.out.println("    key:" + doc.getKey());
     System.out.println("    name:" + doc.getName());
@@ -104,13 +104,13 @@ public class ComponentSuggestionIndexer implements Startable {
     bulk.stop();
   }
 
-  private static IndexRequest newIndexRequest(ComponentSuggestionDoc doc) {
+  private static IndexRequest newIndexRequest(ComponentDoc doc) {
     return new IndexRequest(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION, doc.getId())
       .source(doc.getFields());
   }
 
-  private static ComponentSuggestionDoc toDocument(ComponentDto component) {
-    return new ComponentSuggestionDoc()
+  private static ComponentDoc toDocument(ComponentDto component) {
+    return new ComponentDoc()
       .setId(component.uuid())
       .setName(component.name())
       .setKey(component.key())

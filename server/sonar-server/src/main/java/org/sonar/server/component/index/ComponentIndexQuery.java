@@ -17,29 +17,40 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.server.computation.task.projectanalysis.step;
+package org.sonar.server.component.index;
 
-import org.sonar.server.computation.task.projectanalysis.component.TreeRootHolder;
-import org.sonar.server.computation.task.step.ComputationStep;
-import org.sonar.server.measure.index.ProjectMeasuresIndexer;
+import java.util.Optional;
 
-public class IndexProjectMeasuresStep implements ComputationStep {
+public class ComponentIndexQuery {
 
-  private final ProjectMeasuresIndexer indexer;
-  private final TreeRootHolder treeRootHolder;
+  private final String qualifier;
+  private final String query;
+  private final Optional<Integer> limit;
 
-  public IndexProjectMeasuresStep(ProjectMeasuresIndexer indexer, TreeRootHolder treeRootHolder) {
-    this.indexer = indexer;
-    this.treeRootHolder = treeRootHolder;
+  public ComponentIndexQuery(String qualifier, String query) {
+    this.qualifier = qualifier;
+    this.query = query;
+    this.limit = Optional.empty();
   }
 
-  @Override
-  public void execute() {
-    indexer.index(treeRootHolder.getRoot().getUuid());
+  public ComponentIndexQuery(String qualifier, String query, Integer limit) {
+    this.qualifier = qualifier;
+    this.query = query;
+    this.limit = Optional.of(limit);
   }
 
-  @Override
-  public String getDescription() {
-    return "Index project measures";
+  public String getQualifier() {
+    return qualifier;
   }
+
+  public String getQuery() {
+    return query;
+  }
+
+  public Optional<Integer> getLimit() {
+    return limit;
+  }
+
+  // TODO clarify, if serialversionuid, hashcode, etc. should be implemented
+
 }

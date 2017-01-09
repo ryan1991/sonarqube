@@ -28,18 +28,20 @@ import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
 import org.sonar.db.DbTester;
 import org.sonar.db.component.ComponentDto;
+import org.sonar.server.component.index.ComponentIndexDefinition;
+import org.sonar.server.component.index.ComponentIndexer;
 import org.sonar.server.es.EsTester;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.INDEX_COMPONENT_SUGGESTION;
-import static org.sonar.server.component.suggestion.index.ComponentSuggestionIndexDefinition.TYPE_COMPONENT_SUGGESTION;
+import static org.sonar.server.component.index.ComponentIndexDefinition.INDEX_COMPONENT_SUGGESTION;
+import static org.sonar.server.component.index.ComponentIndexDefinition.TYPE_COMPONENT_SUGGESTION;
 
-public class ComponentSuggestionIndexerTest {
+public class ComponentIndexerTest {
 
   private System2 system2 = System2.INSTANCE;
 
   @Rule
-  public EsTester esTester = new EsTester(new ComponentSuggestionIndexDefinition(new MapSettings()));
+  public EsTester esTester = new EsTester(new ComponentIndexDefinition(new MapSettings()));
 
   @Rule
   public DbTester dbTester = DbTester.create(system2);
@@ -81,7 +83,7 @@ public class ComponentSuggestionIndexerTest {
     dbClient.componentDao().insert(dbSession, component);
     dbSession.commit();
 
-    ComponentSuggestionIndexer indexer = createIndexer();
+    ComponentIndexer indexer = createIndexer();
     indexer.index("UUID-2");
     long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
 
@@ -101,7 +103,7 @@ public class ComponentSuggestionIndexerTest {
     dbClient.componentDao().insert(dbSession, component);
     dbSession.commit();
 
-    ComponentSuggestionIndexer indexer = createIndexer();
+    ComponentIndexer indexer = createIndexer();
     indexer.index("UUID-1");
     long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
 
@@ -134,7 +136,7 @@ public class ComponentSuggestionIndexerTest {
 
     dbSession.commit();
 
-    ComponentSuggestionIndexer indexer = createIndexer();
+    ComponentIndexer indexer = createIndexer();
     indexer.index("UUID-PROJECT-1");
     long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
 
@@ -142,14 +144,14 @@ public class ComponentSuggestionIndexerTest {
   }
 
   private long indexAndReturnCount() {
-    ComponentSuggestionIndexer indexer = createIndexer();
+    ComponentIndexer indexer = createIndexer();
     indexer.index();
     long countDocuments = esTester.countDocuments(INDEX_COMPONENT_SUGGESTION, TYPE_COMPONENT_SUGGESTION);
     return countDocuments;
   }
 
-  private ComponentSuggestionIndexer createIndexer() {
-    return new ComponentSuggestionIndexer(dbTester.getDbClient(), esTester.client());
+  private ComponentIndexer createIndexer() {
+    return new ComponentIndexer(dbTester.getDbClient(), esTester.client());
   }
 
 }

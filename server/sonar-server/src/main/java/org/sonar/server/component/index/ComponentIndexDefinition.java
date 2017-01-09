@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.server.component.suggestion.index;
+package org.sonar.server.component.index;
 
 import org.sonar.api.config.Settings;
 import org.sonar.server.es.IndexDefinition;
 import org.sonar.server.es.NewIndex;
 
-public class ComponentSuggestionIndexDefinition implements IndexDefinition {
+public class ComponentIndexDefinition implements IndexDefinition {
 
   public static final String INDEX_COMPONENT_SUGGESTION = "componentsuggestions";
   public static final String TYPE_COMPONENT_SUGGESTION = "componentsuggestion";
@@ -38,7 +38,7 @@ public class ComponentSuggestionIndexDefinition implements IndexDefinition {
 
   private final Settings settings;
 
-  public ComponentSuggestionIndexDefinition(Settings settings) {
+  public ComponentIndexDefinition(Settings settings) {
     this.settings = settings;
   }
 
