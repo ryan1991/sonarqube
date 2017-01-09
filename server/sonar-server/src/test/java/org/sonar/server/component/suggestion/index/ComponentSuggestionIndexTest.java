@@ -21,7 +21,6 @@ package org.sonar.server.component.suggestion.index;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -36,6 +35,7 @@ import org.sonar.db.DbTester;
 import org.sonar.server.es.EsTester;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentSuggestionIndexTest {
@@ -73,15 +73,12 @@ public class ComponentSuggestionIndexTest {
     assertSearch(
       asList(),
       BLA,
-      Collections.emptyList());
+      emptyList());
   }
 
   @Test
   public void exact_match_search() {
-    assertSearch(
-      asList(newDoc(BLA)),
-      BLA,
-      asList(UUID_DOC_1));
+    assertMatch(BLA, BLA);
   }
 
   @Test
@@ -99,11 +96,9 @@ public class ComponentSuggestionIndexTest {
     assertMatch(PREFIX_MIDDLE_SUFFIX, SUFFIX);
   }
 
-  private void assertMatch(String name, String query) {
-    assertSearch(
-      asList(newDoc(name)),
-      query,
-      asList(UUID_DOC_1));
+  @Test
+  public void do_not_interpret_input() {
+    assertNotMatch(BLA, "*");
   }
 
   @Test
@@ -116,10 +111,7 @@ public class ComponentSuggestionIndexTest {
 
   @Test
   public void unmatching_search() {
-    assertSearch(
-      asList(newDoc(BLA)),
-      "blubb",
-      Collections.emptyList());
+    assertNotMatch(BLA, "blubb");
   }
 
   @Test
@@ -142,6 +134,20 @@ public class ComponentSuggestionIndexTest {
 
     List<String> ids = docs.stream().map(d -> d.getId()).collect(Collectors.toList());
     assertThat(search(docs, BLA)).hasSameElementsAs(ids);
+  }
+
+  private void assertMatch(String name, String query) {
+    assertSearch(
+      asList(newDoc(name)),
+      query,
+      asList(UUID_DOC_1));
+  }
+
+  private void assertNotMatch(String name, String query) {
+    assertSearch(
+      asList(newDoc(name)),
+      query,
+      emptyList());
   }
 
   private ComponentSuggestionDoc newDoc(String name) {
