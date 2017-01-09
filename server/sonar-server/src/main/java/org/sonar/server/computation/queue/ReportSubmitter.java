@@ -88,7 +88,7 @@ public class ReportSubmitter {
       .orElseThrow(() -> new NotFoundException(format("Organization with key '%s' does not exist", organizationKey)));
   }
 
-  private void ensureOrganizationIsConsistent(Optional<ComponentDto> project, OrganizationDto organizationDto) {
+  private static void ensureOrganizationIsConsistent(Optional<ComponentDto> project, OrganizationDto organizationDto) {
     if (project.isPresent()) {
       checkArgument(project.get().getOrganizationUuid().equals(organizationDto.getUuid()),
         "Organization of component with key '%s' does not match specified organization '%s'",
